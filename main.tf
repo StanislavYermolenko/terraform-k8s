@@ -1,6 +1,9 @@
+# --- root/main.tf ---
+
 resource "kubernetes_deployment" "iotdep" {
+  for_each = local.deployment
   metadata {
-    name = "iotdep"
+    name = "${each.key}-pod"
     labels = {
       app = "iotapp"
     }
@@ -24,19 +27,19 @@ resource "kubernetes_deployment" "iotdep" {
 
       spec {
         container {
-          image = "nodered/node-red:latest"
-          name  = "nodered-container"
+          image = each.value.image
+          name  = "${each.key}-container"
           volume_mount {
-            name       = "nodered-vol"
-            mount_path = "/data"
+            name       = "${each.key}-vol"
+            mount_path = each.value.volumepath
           }
           port {
-            container_port = 1880
-            host_port      = 8000
+            container_port = each.value.int
+            host_port      = each.value.ext
           }
         }
         volume {
-          name = "nodered-vol"
+          name = "${each.key}-vol"
           empty_dir {
             medium = ""
           }
